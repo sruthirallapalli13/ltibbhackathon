@@ -1,14 +1,15 @@
 <?php
-
 session_start();
 
-$host = "mysqldb"; /* Host name */
-$user = "root"; /* User */
-$password = "admin123"; /* Password */
-$dbname = "customers"; /* Database name */
+$host     = getenv('DB_HOST')     ?: 'localhost';
+$user     = getenv('DB_USER')     ?: 'admin';
+$password = getenv('DB_PASSWORD') ?: '';
+$dbname   = getenv('DB_NAME')     ?: 'customers';
 
-$con = mysqli_connect($host, $user, $password,$dbname);
-// Check connection
+$con = mysqli_connect($host, $user, $password, $dbname);
+
 if (!$con) {
- die("Connection failed: " . mysqli_connect_error());
+    error_log("DB connection failed: " . mysqli_connect_error());
+    die("Connection failed. Please try again later.");
 }
+?>
