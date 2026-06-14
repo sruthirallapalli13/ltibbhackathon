@@ -2,15 +2,10 @@ pipeline {
     agent any
     
     environment {
-    AWS_REGION   = 'us-east-1'
-    AWS_ACCOUNT  = '962254627408'
-    ECR_REPO     = 'blood-donation-app'
-    ECR_REGISTRY = "${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-    IMAGE_TAG    = "${BUILD_NUMBER}"
-    FULL_IMAGE   = "${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}"
-}
-
-
+        AWS_REGION   = 'us-east-1'
+        AWS_ACCOUNT  = '962254627408'
+        ECR_REPO     = 'blood-donation-app
+        
         // ── Full ECR image URL ──
         ECR_REGISTRY    = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         IMAGE_TAG       = "${BUILD_NUMBER}"  // unique tag per build
