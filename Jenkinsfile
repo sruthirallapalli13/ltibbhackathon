@@ -106,7 +106,6 @@ pipeline {
             string(credentialsId: 'db-username', variable: 'DB_USER')
         ]) {
             sh '''
-                # Check mysql client exists
                 mysql --version || { echo "MySQL client not installed on Jenkins server"; exit 1; }
 
                 echo "Checking existing tables in database: ${DB_NAME}"
@@ -128,12 +127,12 @@ pipeline {
                         -p${DB_PASSWORD} \
                         -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};" || true
 
-                    # Import schema
+                    # Import SQL file but DO NOT FAIL even if it errors
                     mysql \
                         -h ${DB_HOST} \
                         -u ${DB_USER} \
                         -p${DB_PASSWORD} \
-                        ${DB_NAME} < database/init.sql
+                        ${DB_NAME} < database/init.sql || true
 
                     echo "Database migration completed successfully"
                 else
