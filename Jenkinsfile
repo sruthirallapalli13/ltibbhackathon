@@ -107,9 +107,10 @@ pipeline {
         ]) {
             sh '''
                 # Check mysql client exists
-                mysql --version || { echo "MySQL client not installed in agent image"; exit 1; }
+                mysql --version || { echo "MySQL client not installed on Jenkins server"; exit 1; }
 
-                # Check if database already has tables
+                echo "Checking existing tables in database: ${DB_NAME}"
+
                 TABLE_COUNT=$(mysql \
                     -h ${DB_HOST} \
                     -u ${DB_USER} \
@@ -120,12 +121,14 @@ pipeline {
                 if [ "$TABLE_COUNT" -eq "0" ]; then
                     echo "Running initial database migration..."
 
+                    # Create DB if not exists (ignore error if exists)
                     mysql \
                         -h ${DB_HOST} \
                         -u ${DB_USER} \
                         -p${DB_PASSWORD} \
-                        -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
+                        -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};" || true
 
+                    # Import schema
                     mysql \
                         -h ${DB_HOST} \
                         -u ${DB_USER} \
