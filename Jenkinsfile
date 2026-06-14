@@ -99,49 +99,47 @@ pipeline {
         // Imports your init.sql into RDS
         // ────────────────────────────────────────
         stage("Database Migration") {
-            steps {
-                echo "Running database migration..."
-                withCredentials([
-                    string(credentialsId: 'db-password', variable: 'DB_PASSWORD'),
-                    string(credentialsId: 'db-username', variable: 'DB_USER')
-                ]) {
-                    sh '''
-                        # Install MySQL client if not present
-                        which mysql || sudo yum install -y mysql
+    steps {
+        echo "Running database migration..."
+        withCredentials([
+            string(credentialsId: 'db-password', variable: 'DB_PASSWORD'),
+            string(credentialsId: 'db-username', variable: 'DB_USER')
+        ]) {
+            sh '''
+                # Check mysql client exists
+                mysql --version || { echo "MySQL client not installed in agent image"; exit 1; }
 
-                        # Check if database already has tables
-                        TABLE_COUNT=$(mysql \
-                            -h ${DB_HOST} \
-                            -u ${DB_USER} \
-                            -p${DB_PASSWORD} \
-                            -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${DB_NAME}';" \
-                            --skip-column-names 2>/dev/null || echo "0")
+                # Check if database already has tables
+                TABLE_COUNT=$(mysql \
+                    -h ${DB_HOST} \
+                    -u ${DB_USER} \
+                    -p${DB_PASSWORD} \
+                    -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${DB_NAME}';" \
+                    --skip-column-names 2>/dev/null || echo "0")
 
-                        if [ "$TABLE_COUNT" -eq "0" ]; then
-                            echo "Running initial database migration..."
+                if [ "$TABLE_COUNT" -eq "0" ]; then
+                    echo "Running initial database migration..."
 
-                            # Create database if not exists
-                            mysql \
-                                -h ${DB_HOST} \
-                                -u ${DB_USER} \
-                                -p${DB_PASSWORD} \
-                                -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
+                    mysql \
+                        -h ${DB_HOST} \
+                        -u ${DB_USER} \
+                        -p${DB_PASSWORD} \
+                        -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
 
-                            # Import init.sql
-                            mysql \
-                                -h ${DB_HOST} \
-                                -u ${DB_USER} \
-                                -p${DB_PASSWORD} \
-                                ${DB_NAME} < database/init.sql
+                    mysql \
+                        -h ${DB_HOST} \
+                        -u ${DB_USER} \
+                        -p${DB_PASSWORD} \
+                        ${DB_NAME} < database/init.sql
 
-                            echo "Database migration completed successfully"
-                        else
-                            echo "Database already has $TABLE_COUNT tables — skipping migration"
-                        fi
-                    '''
-                }
-            }
+                    echo "Database migration completed successfully"
+                else
+                    echo "Database already has $TABLE_COUNT tables — skipping migration"
+                fi
+            '''
         }
+    }
+}
 
         // ────────────────────────────────────────
         // STAGE 6 — Create ECR repo if not exists
