@@ -1,11 +1,12 @@
 pipeline {
     agent any
-    
+
     environment {
-        AWS_REGION   = 'us-east-1'
-        AWS_ACCOUNT  = '962254627408'
-        ECR_REPO     = 'blood-donation-app
-        
+        // ── AWS config ──
+        AWS_REGION      = "us-east-1"
+        AWS_ACCOUNT_ID  = "962254627408"  // replace this
+        ECR_REPO        = "blood-donation-app"
+
         // ── Full ECR image URL ──
         ECR_REGISTRY    = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         IMAGE_TAG       = "${BUILD_NUMBER}"  // unique tag per build
@@ -181,20 +182,23 @@ pipeline {
         // ────────────────────────────────────────
         // STAGE 8 — Push image to ECR
         // ────────────────────────────────────────
-        stage('Push to ECR') {
+        stage("Push to ECR") {
             steps {
                 echo "Pushing image to ECR..."
                 sh '''
+                    # Login to ECR
                     aws ecr get-login-password \
                         --region ${AWS_REGION} | \
                     docker login \
                         --username AWS \
                         --password-stdin ${ECR_REGISTRY}
 
+                    # Tag with ECR URL
                     docker tag ${APP_NAME}:${IMAGE_TAG} ${FULL_IMAGE}
                     docker tag ${APP_NAME}:latest \
                         ${ECR_REGISTRY}/${ECR_REPO}:latest
 
+                    # Push both tags
                     docker push ${FULL_IMAGE}
                     docker push ${ECR_REGISTRY}/${ECR_REPO}:latest
 
@@ -202,6 +206,7 @@ pipeline {
                 '''
             }
         }
+
         // ────────────────────────────────────────
         // STAGE 9 — Deploy to EC2 AZ-a
         // SSH in and pull Docker image from ECR
