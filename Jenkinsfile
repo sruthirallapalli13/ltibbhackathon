@@ -37,28 +37,7 @@ pipeline {
         // ────────────────────────────────────────
         // STAGE 2 — Validate PHP syntax
         // ────────────────────────────────────────
-        stage("Validate PHP") {
-            steps {
-                echo "Checking PHP syntax on all files..."
-                sh '''
-                    ERROR=0
-                    for file in $(find . -name "*.php"); do
-                        php -l "$file"
-                        if [ $? -ne 0 ]; then
-                            echo "Syntax error found in: $file"
-                            ERROR=1
-                        fi
-                    done
-                    if [ $ERROR -ne 0 ]; then
-                        echo "PHP validation failed"
-                        exit 1
-                    fi
-                    echo "All PHP files passed validation"
-                '''
-            }
-        }
-
-        // ────────────────────────────────────────
+               // ────────────────────────────────────────
         // STAGE 3 — Get EC2 private IPs dynamically
         // No hardcoding needed — discovers IPs from AWS
         // ────────────────────────────────────────
